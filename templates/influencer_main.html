@@ -18,7 +18,7 @@
             </nav>
         </header>
         <main>
-            <h2>Welcome {{user.sname}}</h2>
+            <h2>Welcome {{user.iname}}</h2>
             <h3>Active Campaigns:</h3>
             <div class="campaignlist">
                 <table>
@@ -27,7 +27,7 @@
                         <td>
                             <div class="campaign">
                                 <span>{{c.cname}}</span>
-                                <button class="viewopen" data-popup-id="popup{{ loop.index }}">View</button>
+                                <button class="viewopen" data-popup-id="popup-camp-{{ c.campaignid }}">View</button>
                             </div>
                         </td>
                     </tr>
@@ -43,11 +43,13 @@
                         <tr>
                             <td>
                                 <div class="request">
-                                    <span>{{ f.uname }}</span>
+                                    <span>{{ r.sname }}</span>
                                     <div>
-                                        <button class="viewopen" data-popup-id="popup{{ loop.index }}">View</button>
-                                        <button class="accept">Accept</button>
-                                        <button class="reject">Reject</button>
+                                        <button class="viewopen" data-popup-id="popup{{ r.reqid }}">View</button>
+                                        <form action="/requestupdate" method="post">
+                                            <button class="accept" type="submit" name="status" value="accepted,{{user.inid}},{{r.campaign_id}},i">Accept</button>
+                                            <button class="reject" type="submit" name="status" value="rejected,{{user.inid}},{{r.campaign_id}},i">Reject</button>
+                                        </form>
                                     </div>
                                 </div>
                             </td>
@@ -60,19 +62,50 @@
     </div>
 
     <!-- ppop content -->
-{% for c in influ %}
-<div class="popup" id="popup{{ loop.index }}">
-    <div class="popupcontent">
-        <span class="close" data-popup-id="popup{{ loop.index }}">&times;</span>
-        <h2>Description</h2>
-        <p>This is a description in the popup.</p>
-        <div class="buttons">
-            <button class="addbutton">Add</button>
-            <button class="findbutton">Find</button>
-        </div>
+
+    {% for c in camp %}
+    <div class="popup" id="popup-camp-{{ c.campaignid }}">
+        <div class="popupcontent">
+            <span class="close" data-popup-id="popup-camp-{{ c.campaignid }}">&times;</span>
+            <h2>Description</h2>
+            <p>
+                Campaign ID: {{ c.campaignid }} <br>
+                Campaign Name: {{ c.cname }} <br>
+                Sponsor's Username: {{ c.sname }} <br>
+                Influencer's Username: {{ c.iname }} <br>
+                Budget: {{ c.budget }} <br>
+                Description: {{ c.desc }} <br>
+                Start Date: {{ c.startdate }} <br>
+                End Date: {{ c.enddate }} <br>
+                Status: {{ c.public }} <br>
+                Job Type: {{ c.job }} <br>
+            </p>
+            </div>
     </div>
-</div>
-{% endfor %}
+    {% endfor %}
+
+    {% for r in request %}
+    <div class="popup" id="popup{{ r.reqid }}">
+        <div class="popupcontent">
+            <span class="close" data-popup-id="popup{{ r.reqid }}">&times;</span>
+            <h2>Description</h2>
+            <p>
+                Request ID: {{ r.reqid }} <br>
+                Sponsor's Username: {{ r.sname }} <br>
+                
+                Campaign Name: {{ r.campaign_id }} <br>
+                Budget: {{ r.budget }} <br>
+                Description: {{ r.desc }} <br>
+                Start Date: {{ r.startdate }} <br>
+                End Date: {{ r.enddate }} <br>
+                Status: {{ r.public }} <br>
+                Job Type: {{ r.job }} <br>
+            </p>
+            </div>
+    </div>
+    {% endfor %}
+
+
 <script>
 document.addEventListener('DOMContentLoaded', (event) => {
     const openButtons = document.querySelectorAll('.viewopen');

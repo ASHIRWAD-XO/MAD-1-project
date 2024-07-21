@@ -36,7 +36,7 @@ class Campaign(db.Model):
     __tablename__ = 'campaign'
     campaignid = db.Column(db.Integer, primary_key=True, autoincrement=True)
     sname = db.Column(db.String, db.ForeignKey('sponsor.usename'), nullable=False)
-    iname = db.Column(db.String, db.ForeignKey('influencer.usename'), nullable=True)
+    iname = db.Column(db.String, db.ForeignKey('influencer.usename'))
     cname = db.Column(db.String, nullable=False)
     budget = db.Column(db.Integer, nullable=False)
     desc = db.Column(db.String, nullable=False)
@@ -54,7 +54,9 @@ class Requests(db.Model):
     campaign_id = db.Column(db.String, db.ForeignKey('campaign.campaignid'))
     icheck = db.Column(db.String)
     scheck = db.Column(db.String)
-
+    msg= db.Column(db.String)
+    amount=db.Column(db.String, db.ForeignKey('campaign.budget') )
+    cname=db.Column(db.String, db.ForeignKey('campaign.cname') )
 
 if __name__ == '__main__':
     with app.app_context():

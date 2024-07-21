@@ -100,7 +100,7 @@
                                 <div class="list">
                                     <span>{{i.iname}}</span>
                                     <div style="display: inline-flex;">
-                                            <button class="viewopen" data-popup-id="popup{{ loop.index }}">View</button> 
+                                            <button class="viewopen" data-popup-id="popup-influ-{{ i.inid }}">View</button> 
                             <form action="/flagfind" method="post">
                                             <button class="flag" type="submit" name="flagvalue" value="1,{{i.usename}}" >Flag</button>
                                         
@@ -121,7 +121,7 @@
                                 <div class="list">
                                     <span>{{s.sname}}</span>
                                     <div style="display: inline-flex;">
-                                        <button class="viewopen" data-popup-id="popup{{ loop.index }}">View</button>
+                                        <button class="viewopen" data-popup-id="popup-spon-{{ s.sid }}">View</button>
                             <form action="/flagfind" method="post">
                                         <button class="flag" type="submit" name="flagvalue" value="1,{{s.usename}}" >Flag</button>
                                     </div>
@@ -141,7 +141,7 @@
                                 <div class="list">
                                     <span>{{c.cname}}</span>
                                     <div style="display: inline-flex;">
-                                        <button class="viewopen" data-popup-id="popup{{ loop.index }}">View</button>
+                                        <button class="viewopen" data-popup-id="popup-camp-{{ c.campaignid }}">View</button>
                             <form action="/flagfind" method="post">
                                         <button class="flag" type="submit" name="flagvalue" value="1,{{c.campaignid}}">Flag</button>
                                     </div>
@@ -157,18 +157,63 @@
 <!-- pop up part -->
 
 {% for c in camp %}
-    <div class="popup" id="popup{{ loop.index }}">
+    <div class="popup" id="popup-camp-{{ c.campaignid }}">
         <div class="popupcontent">
-            <span class="close" data-popup-id="popup{{ loop.index }}">&times;</span>
+            <span class="close" data-popup-id="popup-camp-{{ c.campaignid }}">&times;</span>
             <h2>Description</h2>
-            <p>This is a description in the popup.</p>
-            <div class="buttons">
-                <button class="addbutton">Add</button>
-                <button class="findbutton">Find</button>
-            </div>
+            <p>
+                Campaign ID: {{ c.campaignid }} <br>
+                Campaign Name: {{ c.cname }} <br>
+                Sponsor's Username: {{ c.sname }} <br>
+                Influencer's Username: {{ c.iname }} <br>
+                Budget: {{ c.budget }} <br>
+                Description: {{ c.desc }} <br>
+                Start Date: {{ c.startdate }} <br>
+                End Date: {{ c.enddate }} <br>
+                Status: {{ c.public }} <br>
+                Job Type: {{ c.job }} <br>
+            </p>
+            
         </div>
     </div>
-{% endfor %}
+    {% endfor %}
+
+    {% for i in influ %}
+    <div class="popup" id="popup-influ-{{ i.inid }}">
+        <div class="popupcontent">
+            <span class="close" data-popup-id="popup-influ-{{ i.inid }}">&times;</span>
+            <h2>Description</h2>
+            <p>
+                Influencer ID: {{ i.inid }} <br>
+                Influencer Name: {{ i.iname }} <br>
+                Influencer's Username: {{ i.usename }} <br>
+                Email: {{ i.email }} <br>
+                Phone Number: {{ i.number }} <br>
+                Platform: {{ i.platform }} <br>
+                Reach: {{ i.reach }} <br>
+            </p>
+            
+        </div>
+    </div>
+    {% endfor %}
+
+    {% for s in spon %}
+    <div class="popup" id="popup-spon-{{ s.sid }}">
+        <div class="popupcontent">
+            <span class="close" data-popup-id="popup-spon-{{ s.sid }}">&times;</span>
+            <h2>Description</h2>
+            <p>
+                Sponsor ID: {{ s.sid }} <br>
+                Sponsor Name: {{ s.sname }} <br>
+                Sponsor's Username: {{ s.usename }} <br>
+                Email: {{ s.email }} <br>
+                Phone Number: {{ s.number }} <br>
+                Industry : {{s.industry}}
+            </p>
+            
+        </div>
+    </div>
+    {% endfor %}
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {
         const openButtons = document.querySelectorAll('.viewopen');

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/dash.css">
-    <title>Sponsors's Dashboard</title>
+    <title>Sponsor's Dashboard</title>
 </head>
 <body>
     <div class="dashboard">
@@ -19,8 +19,8 @@
             </nav>
         </header>
         <main>
-            <div class="adbutton" style="display: flex;position: relative;left: 85%;">
-                <a href="/addcampaign"><button>add campaign</button></a>
+            <div class="adbutton" style="display: flex; position: relative; left: 85%;">
+                <a href="/addcampaign"><button>Add Campaign</button></a>
             </div>
             <h2>Welcome {{user.sname}}</h2>
             <h3>Active Campaigns:</h3>
@@ -30,64 +30,95 @@
                     {% for c in camp %}
                         <div class="campaign">
                             <span class="heading">{{ c.cname }}</span>
-                            <button class="viewopen" data-popup-id="popup{{ loop.index }}">View</button>
+                            <button class="viewopen" data-popup-id="popup{{ c.campaignid }}">View</button>
                         </div>
                     {% endfor %}
                 </div>
-                
             </div>
-
-            
-                
-            
         </main>
     </div>
 
-<!-- ppop content -->
-{% for c in camp %}
-    <div class="popup" id="popup{{ loop.index }}">
-        <div class="popupcontent">
-            <span class="close" data-popup-id="popup{{ loop.index }}">&times;</span>
-            <h2>Description</h2>
-            <p>This is a description in the popup.</p>
-            <div class="buttons">
-                <button class="addbutton">Add</button>
-                <button class="findbutton">Find</button>
+    <!-- Popup content -->
+    {% for c in camp %}
+        <div class="popup" id="popup{{ c.campaignid }}">
+            <div class="popupcontent">
+                <span class="close" data-popup-id="popup{{ c.campaignid }}">&times;</span>
+                <h2>Description</h2>
+                <p>Campaign ID: {{ c.campaignid }} <br>
+                    Campaign Name: {{ c.cname }} <br>
+                    Sponsor's Username: {{ c.sname }} <br>
+                    Influencer's Username: {{ c.iname }} <br>
+                    Budget: {{ c.budget }} <br>
+                    Description: {{ c.desc }} <br>
+                    Start Date: {{ c.startdate }} <br>
+                    End Date: {{ c.enddate }} <br>
+                    Status: {{ c.public }} <br>
+                    Job Type: {{ c.job }} <br>
+
+                </p>
+                <div class="buttons">
+                    <a href="/sfind"><button class="addbutton" data-cid="{{ c.campaignid }}" data-sid="{{ user.sid }}" >Find</button></a>
+                    
+                </div>
             </div>
         </div>
-    </div>
-{% endfor %}
-<script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        const openButtons = document.querySelectorAll('.viewopen');
-        const closeButtons = document.querySelectorAll('.close');
+    {% endfor %}
 
-        openButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const popupId = button.getAttribute('data-popup-id');
-                const popup = document.getElementById(popupId);
-                popup.style.display = 'flex';
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const openButtons = document.querySelectorAll('.viewopen');
+            const closeButtons = document.querySelectorAll('.close');
+            const addButtons = document.querySelectorAll('.addbutton');
+
+            openButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const popupId = button.getAttribute('data-popup-id');
+                    const popup = document.getElementById(popupId);
+                    popup.style.display = 'flex';
+                });
             });
-        });
 
-        closeButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const popupId = button.getAttribute('data-popup-id');
-                const popup = document.getElementById(popupId);
-                popup.style.display = 'none';
-            });
-        });
-
-        window.addEventListener('click', (event) => {
-            const openPopups = document.querySelectorAll('.popup');
-            openPopups.forEach(popup => {
-                if (event.target === popup) {
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const popupId = button.getAttribute('data-popup-id');
+                    const popup = document.getElementById(popupId);
                     popup.style.display = 'none';
-                }
+                });
+            });
+
+            window.addEventListener('click', (event) => {
+                const openPopups = document.querySelectorAll('.popup');
+                openPopups.forEach(popup => {
+                    if (event.target === popup) {
+                        popup.style.display = 'none';
+                    }
+                });
+            });
+
+            addButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const cid = button.getAttribute('data-cid');
+                    const sid = button.getAttribute('data-sid');
+                    fetch('/add_campaign', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ cid: cid, sid: sid }),
+                    }).then(response => {
+                        if (response.ok) {
+                            alert('choose influencer');
+                        } else {
+                            alert('Error adding campaign');
+                        }
+                    }).catch(error => {
+                        console.error('Error:', error);
+                        alert('Error adding campaign');
+                    });
+                });
             });
         });
-    });
-</script>
+    </script>
 
     <style>
         .campaign{
@@ -175,12 +206,7 @@
             border-radius: 4px;
         }
     
-        .findbutton {
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-        }
+        
     </style>
 </body>
 </html>

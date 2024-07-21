@@ -1,4 +1,4 @@
-from flask import Flask ,render_template, redirect,request,session,abort ,jsonify
+from flask import Flask ,render_template, redirect,request,session,abort ,jsonify,url_for
 from models import *
 
 
@@ -106,7 +106,7 @@ def imain():
         data=Influencer.query.filter_by(usename=session['username']).first()
         print(data )
         uname=session['username']
-        req=Requests.query.all()
+        req=Requests.query.filter_by(icheck='requested',iname=data.iname)
         camp=Campaign.query.filter_by(iname=uname)
         return render_template('influencer_main.html',user=data,camp=camp,request=req)
     else :
@@ -116,7 +116,7 @@ def imain():
 def ifind():
     if 'username' in session:
         user=Influencer.query.filter_by(usename=session['username']).first()
-        camp=Campaign.query.all()
+        camp=Campaign.query.filter_by(public=1)
         return  render_template("influencer_find.html",user=user,camp=camp)
     else:
         return redirect('/')
@@ -127,8 +127,10 @@ def smain():
     if 'username' in session:
         name=session['username']
         user=Sponsor.query.filter_by(usename=name).first()
-        activecamp=Campaign.query.filter_by(sname=user.usename)
-        req=Requests.query.all()
+        activecamp=Campaign.query.filter_by(sname=user.usename).all()
+        value='requested'
+        req=Requests.query.filter_by(scheck=value).all()
+        print(req,user,activecamp)
         return render_template('sponsor_main.html',user=user,activecamp=activecamp,request=req)
     else :
         return redirect('login')
@@ -158,6 +160,8 @@ user = User.query.filter_by(username=username, password=password).first()
             error = 'Invalid username or password. Try again'
             return render_template('login.html', error=error)
     return render_template('login.html')'''
+
+
 
 #-----------logout---------------
 
@@ -304,7 +308,110 @@ def camp_data():
             print('success')
             return redirect('/campaign')
         else:
-            return f"Enter correct sponsor name"
+            return "Enter correct sponsor name"
+    else:
+        return redirect('/')
+
+#............................requests............................
+
+@app.route('/request',methods=['GET','POST'])
+def requests():
+    if 'username' in session:
+        data=list(request.form['status'].split(','))
+        value=data[0]
+        userid=data[1]
+        cid=data[2]
+        who=data[3]
+        
+        if who=='i':
+            iname=Influencer.query.filter_by(inid=userid).first()
+            cdata=Campaign.query.filter_by(campaignid=cid).first()
+            r=Requests(sname=cdata.sname,iname=iname.iname,campaign_id=cid,cname=cdata.cname,scheck=value,amount=cdata.budget)
+            db.session.add(r)
+            db.session.commit()
+            print("success",r)        
+        return redirect('/ifind')
+    else:
+        return redirect('/')
+
+
+@app.route('/requestupdate',methods=['GET','POST'])
+def requestupdate():
+    if 'username' in session:
+        data=list(request.form['status'].split(','))
+        value=data[0]
+        userid=data[1]
+        cid=data[2]
+        who=data[3]
+        
+        if who=='i':
+            iname=Influencer.query.filter_by(inid=userid).first()
+            cdata=Campaign.query.filter_by(campaignid=cid).first()
+            r=Requests(sname=cdata.sname,iname=iname.iname,campaign_id=cid,cname=cdata.cname,scheck=value,amount=cdata.budget)
+            db.session.add(r)
+            db.session.commit()
+            print("success",r)
+        
+        return redirect('/ifind')
+    else:
+        return redirect('/')
+
+#-----------------sponsor requests------------------
+
+@app.route('/request_influencer', methods=['POST'])
+def request_influencer():
+    data = request.get_json()
+    if not data:
+        return abort(400, 'Invalid input')
+
+    inid = data.get('inid')
+    sid = data.get('sid')
+    
+    if not inid or not sid:
+        return abort(400, 'Missing inid or sid')
+
+    session["inid"] = inid
+    session["sid"] = sid
+    print("success", session["inid"], session["sid"])
+    
+    return redirect('/requestsponsor')
+
+@app.route('/add_campaign', methods=['POST'])
+def add_campaign():
+    data = request.get_json()
+    if not data:
+        return abort(400, 'Invalid input')
+    
+    cid = data.get('cid')
+    sid = data.get('sid')
+    
+    if not cid or not sid:
+        return abort(400, 'Missing inid or sid')
+    session["cid"] = cid
+    session["sid"] = sid
+    
+    if "sid" in session :
+        print("success", session["cid"], session["sid"])
+        return jsonify({"status": "success"}), 200
+    else:
+        return abort(400, 'Session does not have sid')
+
+@app.route('/requestsponsor')
+def requestsponsor():
+    if "inid" not in session or "cid" not in session:
+        return abort(400, 'Missing session data')
+
+    i = Influencer.query.filter_by(inid=session['inid']).first()
+    c = Campaign.query.filter_by(campaignid=session['cid']).first()
+
+    if not i or not c:
+        return abort(404, 'Influencer or Campaign not found')
+
+    r = Requests(sname=c.sname, iname=i.iname, campaign_id=c.campaignid, icheck='requested', amount=c.budget, cname=c.cname)
+    db.session.add(r)
+    db.session.commit()
+    print('success')
+    return jsonify({"status": "success"}), 200 
 
 
 #--------------------------------------------------------------------------
