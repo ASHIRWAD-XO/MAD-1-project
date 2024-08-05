@@ -71,7 +71,7 @@ input {
     font-size: 18px;
 }
 
-.signup {
+.signup , .update {
     background-color: white;
     width: 500px;
     border-radius: 15px;

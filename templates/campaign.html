@@ -57,8 +57,13 @@
 
                 </p>
                 <div class="buttons">
-                    <a href="/sfind"><button class="addbutton" data-cid="{{ c.campaignid }}" data-sid="{{ user.sid }}" >Find</button></a>
-                    
+                    <a href="/sfind2"><button class="addbutton" data-cid="{{ c.campaignid }}" data-sid="{{ user.sid }}" >Add Influencer</button></a>
+                    <form method="post" action="/cupdate">
+                        <a href="/cupdate"><button type="submit" name="update" value="{{ c.campaignid }}" class="update"> Update </button></a>
+                    </form>
+                    <form action="/campdelete" method="post">
+                        <a href="/campdelete"><button type="submit" name="delete" value="{{ c.campaignid }}" class="delete"> Delete</button></a>
+                    </form>
                 </div>
             </div>
         </div>
@@ -197,6 +202,7 @@
     
         .buttons {
             margin-top: 20px;
+            display: ruby-text
         }
     
         .addbutton {
@@ -205,7 +211,20 @@
             border: none;
             border-radius: 4px;
         }
-    
+        
+        .update {
+            background-color: #a43fdb;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .delete {
+            background-color: #ef0404;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
         
     </style>
 </body>

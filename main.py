@@ -107,7 +107,7 @@ def imain():
         print(data )
         uname=session['username']
         req=Requests.query.filter_by(icheck='requested',iname=data.iname)
-        camp=Campaign.query.filter_by(iname=uname)
+        camp=Campaign.query.filter_by(iname=data.iname)
         return render_template('influencer_main.html',user=data,camp=camp,request=req)
     else :
         return redirect('login')
@@ -120,6 +120,40 @@ def ifind():
         return  render_template("influencer_find.html",user=user,camp=camp)
     else:
         return redirect('/')
+    
+@app.route('/iupdate')
+def iupdate():
+    if 'username' in session:
+        user=Influencer.query.filter_by(usename=session['username']).first()
+        return  render_template("iupdate.html",user=user)
+    else:
+        return redirect('/')
+
+
+@app.route('/updateprofile',methods=['POST','GET'])
+def updateprofile():
+    if 'username' in session:
+        user=Influencer.query.filter_by(usename=session['username']).first()
+        if request.form['namee']:
+            user.iname = request.form['namee']
+        if request.form['email']:
+            user.email = request.form['email']
+        if request.form['number']:
+            user.number = request.form['number']
+        if request.form['social']:
+            user.platform = request.form['social']
+        if request.form['followers']:
+            user.reach = request.form['followers']
+        psw = request.form['psw']
+        repsw = request.form['repsw']
+        if psw and repsw:
+            if psw == repsw:
+                user.password = psw
+        db.session.add(user)
+        db.session.commit()
+        return  redirect('/imain')
+    else:
+        return redirect('/')
 
 #-------------------sponsor---------------
 @app.route('/smain')
@@ -127,7 +161,7 @@ def smain():
     if 'username' in session:
         name=session['username']
         user=Sponsor.query.filter_by(usename=name).first()
-        activecamp=Campaign.query.filter_by(sname=user.usename).all()
+        activecamp = Campaign.query.filter_by(sname=user.usename).filter(Campaign.iname != '').all()
         value='requested'
         req=Requests.query.filter_by(scheck=value).all()
         print(req,user,activecamp)
@@ -161,6 +195,14 @@ user = User.query.filter_by(username=username, password=password).first()
             return render_template('login.html', error=error)
     return render_template('login.html')'''
 
+@app.route('/sfind2')
+def sfind2():
+    if 'username' in session:
+        influ=Influencer.query.all()
+        user=Sponsor.query.filter_by(usename=session['username']).first()
+        return  render_template("campaignfind.html",influ=influ,user=user)
+    else:
+        return redirect('/')
 
 
 #-----------logout---------------
@@ -312,6 +354,55 @@ def camp_data():
     else:
         return redirect('/')
 
+@app.route('/cupdate',methods=['POST','GET'])
+def cupdate():
+    if 'username' in session:
+        cid=request.form['update']
+        #user=Sponsor.query.filter_by(usename=session['username']).first()
+        return  render_template("campupdate.html",cid=cid)
+    else:
+        return redirect('/')
+
+@app.route('/updatecampaign',methods=['POST','GET'])
+def updatecampaign():
+    if 'username' in session:
+        if request.form['cdata']:
+            cid=request.form['cdata']
+            #user=Sponsor.query.filter_by(usename=session['username']).first()
+            camp=Campaign.query.filter_by(campaignid=cid).first()
+            
+            if request.form['cname']:
+                camp.cname = request.form['cname']
+            if request.form['budget']:
+                camp.budget = request.form['budget']
+            if request.form['desc']:
+                camp.desc = request.form['desc']
+            if request.form['job']:
+                camp.job = request.form['job']
+            if request.form['startdate']:
+                camp.startdate = request.form['startdate']
+            if request.form['enddate']:
+                camp.enddate = request.form['enddate']    
+            if request.form['state']:
+                camp.public = request.form['state']
+            db.session.add(camp)
+            db.session.commit()
+        return  redirect('/campaign')
+    else:
+        return redirect('/')
+
+@app.route('/campdelete',methods=['POST','GET'])
+def campdelete():
+    if 'username' in session:
+        cid=request.form['delete']
+        camp=Campaign.query.filter_by(campaignid=cid).first()
+        db.session.delete(camp)
+        db.session.commit()
+        return  redirect('/campaign')
+    else:
+        return redirect('/')
+
+
 #............................requests............................
 
 @app.route('/request',methods=['GET','POST'])
@@ -334,6 +425,7 @@ def requests():
     else:
         return redirect('/')
 
+#======================req updates==========================
 
 @app.route('/requestupdate',methods=['GET','POST'])
 def requestupdate():
@@ -341,18 +433,40 @@ def requestupdate():
         data=list(request.form['status'].split(','))
         value=data[0]
         userid=data[1]
-        cid=data[2]
+        rid=data[2]
         who=data[3]
-        
+        print(data,'success')
         if who=='i':
-            iname=Influencer.query.filter_by(inid=userid).first()
-            cdata=Campaign.query.filter_by(campaignid=cid).first()
-            r=Requests(sname=cdata.sname,iname=iname.iname,campaign_id=cid,cname=cdata.cname,scheck=value,amount=cdata.budget)
+            i=Influencer.query.filter_by(inid=userid).first()
+            r=Requests.query.filter_by(reqid=rid).first()
+            print(r)
+            r.icheck=value
+            r.scheck=value
             db.session.add(r)
             db.session.commit()
             print("success",r)
-        
-        return redirect('/ifind')
+            if value=='accepted':
+                camp=Campaign.query.filter_by(campaignid=r.campaign_id).first()
+                camp.iname=i.iname
+                db.session.add(camp)
+                db.session.commit()
+            return redirect('/imain')
+        elif who=='s':
+            r=Requests.query.filter_by(reqid=rid).first()
+            print(r)
+            r.icheck=value
+            r.scheck=value
+            db.session.add(r)
+            db.session.commit()
+            print("success",r)
+            if value=='accepted':   
+                camp=Campaign.query.filter_by(campaignid=r.campaign_id).first()
+                camp.iname=r.iname
+                db.session.add(camp)
+                db.session.commit()
+            return redirect('/smain')
+        else:
+            return "some error occoured"
     else:
         return redirect('/')
 
@@ -413,6 +527,46 @@ def requestsponsor():
     print('success')
     return jsonify({"status": "success"}), 200 
 
+
+#--------------------search bar --------------- ----------------------------------
+@app.route('/search_influencer', methods=['GET'])
+def search_influencer():
+    if 'username' in session:
+        user=Sponsor.query.filter_by(usename=session['username']).first()
+        query = request.args.get('query')
+        if query:
+            influencer=[]
+            influencer += Influencer.query.filter(Influencer.iname.contains(query)).all()
+            influencer += Influencer.query.filter(Influencer.platform.contains(query)).all()
+            influencer += Influencer.query.filter(Influencer.reach.contains(query)).all()
+        else:
+            influencer = []
+
+        return render_template('sponsorsearch.html', influencers=influencer,user=user)
+    else:
+        return redirect('/')
+    
+@app.route('/search_sponsor', methods=['GET'])
+def search_sponsor():
+    if 'username' in session:
+        user=Influencer.query.filter_by(usename=session['username']).first()
+        query = request.args.get('query')
+        if query:
+            sponsor=[]
+            sponsor += Sponsor.query.filter(Sponsor.sname.contains(query)).all()
+            sponsor += Sponsor.query.filter(Sponsor.industry.contains(query)).all()
+            campaign=[]
+            campaign+=Campaign.query.filter(Campaign.cname.contains(query)).all()
+            campaign+=Campaign.query.filter(Campaign.sname.contains(query)).all()
+            campaign+=Campaign.query.filter(Campaign.budget.contains(query)).all()
+            campaign+=Campaign.query.filter(Campaign.job.contains(query)).all()
+        else:
+            sponsor = []
+            campaign=[]
+
+        return render_template('influencersearch.html', sponsors=sponsor,user=user,campaigns=campaign)
+    else:
+        return redirect('/')
 
 #--------------------------------------------------------------------------
 

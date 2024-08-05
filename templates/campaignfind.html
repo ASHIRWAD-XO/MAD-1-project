@@ -21,7 +21,7 @@
         <main>
             <h2>Welcome {{user.sname}}</h2>
             <div class="searchbar">
-                <a href="/search_influencer"><button class="searchbar">Search Here</button></a>
+                <input type="text" placeholder="search bar...">
             </div>
             <br>
             <div class="viewpoint">
@@ -34,7 +34,7 @@
                                     <span>{{ i.iname }}</span>
                                     <div>
                                         <button class="viewopen" data-popup-id="popup{{ i.inid }}">View</button>
-                                        
+                                        <button class="req" data-inid="{{ i.inid }}" data-sid="{{ user.sid }}">Request</button>
                                     </div>
                                 </div>
                             </td>
@@ -53,9 +53,8 @@
                 <h2>Description</h2>
                 <p>{{ i.iname }}</p>
                 <div class="buttons">
-                    <a href="/campaign">
-                    <button class="findbutton" data-cid="{{ i.inid }}" data-sid="{{ user.sid }}">To Add go to -> Campaigns</button>
-                    </a>
+                    <button class="addbutton" data-cid="{{ i.inid }}" data-sid="{{ user.sid }}">Add</button>
+                    <button class="findbutton" data-cid="{{ i.inid }}" data-sid="{{ user.sid }}">Find</button>
                 </div>
             </div>
         </div>

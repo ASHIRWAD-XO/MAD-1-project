@@ -70,6 +70,21 @@
             height: 6vh;
 
         }
+        .accept {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        .reject {
+            background-color: #f20707;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        .box {
+            display: contents;
+        }
 
     </style>
 </head>
@@ -112,11 +127,11 @@
                             <td>
                                 <div class="request">
                                     <span>{{ r.iname }}</span>
-                                    <div>
+                                    <div class="box">
                                         <button class="viewopen" data-popup-id="popup{{ r.reqid }}">View</button>
                                         <form action="/requestupdate" method="post">
-                                            <button class="accept" type="submit" name="status" value="accepted,{{user.inid}},{{r.campaign_id}},i">Accept</button>
-                                            <button class="reject" type="submit" name="status" value="rejected,{{user.inid}},{{r.campaign_id}},i">Reject</button>
+                                            <button class="accept" type="submit" name="status" value="accepted,{{user.inid}},{{r.reqid}},s">Accept</button>
+                                            <button class="reject" type="submit" name="status" value="rejected,{{user.inid}},{{r.reqid}},s">Reject</button>
                                         </form>
                                     </div>
                                 </div>
