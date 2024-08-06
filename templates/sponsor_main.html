@@ -85,6 +85,9 @@
         .box {
             display: contents;
         }
+        .req_action{
+
+        }
 
     </style>
 </head>
@@ -130,8 +133,12 @@
                                     <div class="box">
                                         <button class="viewopen" data-popup-id="popup{{ r.reqid }}">View</button>
                                         <form action="/requestupdate" method="post">
-                                            <button class="accept" type="submit" name="status" value="accepted,{{user.inid}},{{r.reqid}},s">Accept</button>
-                                            <button class="reject" type="submit" name="status" value="rejected,{{user.inid}},{{r.reqid}},s">Reject</button>
+                                            <div class="req_action">
+                                                <button class="accept" type="submit" name="status" value="accepted,{{user.inid}},{{r.reqid}},s">Accept</button>
+                                                <button class="reject" type="submit" name="status" value="rejected,{{user.inid}},{{r.reqid}},s">Reject</button>
+                                                
+                                            </div>
+                                            
                                         </form>
                                     </div>
                                 </div>
