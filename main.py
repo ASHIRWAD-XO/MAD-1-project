@@ -1,6 +1,11 @@
 from flask import Flask ,render_template, redirect,request,session,abort ,jsonify,url_for
 from models import *
-
+import io
+import matplotlib.pyplot as plt
+import pandas as pd
+from flask import send_file
+import matplotlib
+matplotlib.use('Agg')
 
 app = Flask(__name__)
 
@@ -568,8 +573,149 @@ def search_sponsor():
     else:
         return redirect('/')
 
-#--------------------------------------------------------------------------
+#----------------------------stats----------------------------------------------
 
+
+@app.route('/plot/histogramreach')
+def plot_histogramsreach():
+    # Fetch data
+    influencers = Influencer.query.all()
+
+    # Prepare data
+    reach_data = [i.reach for i in influencers]
+
+    # Create plots
+    fig, ax = plt.subplots( figsize=(12, 6))
+    ax.hist(reach_data, bins=20, color='blue', edgecolor='black' ,rwidth=0.4)
+    ax.set_title('Histogram of Reach')
+    ax.set_xlabel('Reach')
+    ax.set_ylabel('Frequency')
+    
+    
+    
+    # Save plot to a BytesIO object and return it
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plt.close(fig)
+    return send_file(img, mimetype='image/png')
+
+
+
+@app.route('/plot/histogrambudget')
+def plot_histogramsbudget():
+    # Fetch data
+    campaigns = Campaign.query.all()
+
+    # Prepare data
+    budget_data = [c.budget for c in campaigns]
+
+    # Create plots
+    fig, ax = plt.subplots( figsize=(12, 6))
+    
+    
+    ax.hist(budget_data, bins=20, color='green', edgecolor='black',rwidth=0.4)
+    ax.set_title('Histogram of Budget')
+    ax.set_xlabel('Budget')
+    ax.set_ylabel('Frequency')
+    
+    # Save plot to a BytesIO object and return it
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plt.close(fig)
+    return send_file(img, mimetype='image/png')
+
+
+
+@app.route('/plot/total_campaigns_sponsors_influencers')
+def plot_total_campaigns_sponsors_influencers():
+    # Fetch data
+    total_campaigns = Campaign.query.count()
+    total_sponsors = Sponsor.query.count()
+    total_influencers = Influencer.query.count()
+    
+    # Create plot
+    fig, ax = plt.subplots(figsize=(8, 6))
+    categories = ['Total Campaigns', 'Total Sponsors', 'Total Influencers']
+    values = [total_campaigns, total_sponsors, total_influencers]
+    
+    ax.bar(categories, values, color=['blue', 'green', 'orange'] , width=0.4)
+    ax.set_title('Total Campaigns, Sponsors, and Influencers')
+    ax.set_ylabel('Count')
+    
+    # Save plot to a BytesIO object and return it
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plt.close(fig)
+    return send_file(img, mimetype='image/png')
+
+
+@app.route('/plot/flagged_unflagged_users')
+def plot_flagged_unflagged_users():
+    # Fetch data
+    flagged_influencers = Influencer.query.filter_by(flag=1).count()
+    unflagged_influencers = Influencer.query.filter_by(flag=0).count()
+    flagged_sponsors = Sponsor.query.filter_by(flag=1).count()
+    unflagged_sponsors = Sponsor.query.filter_by(flag=0).count()
+    flagged_campaigns = Campaign.query.filter_by(flag=1).count()
+    unflagged_campaigns = Campaign.query.filter_by(flag=0).count()
+    
+    # Create plot
+    fig, ax = plt.subplots(figsize=(12, 7))
+    categories = [
+        'Flagged Influencers', 'Unflagged Influencers', 
+        'Flagged Sponsors', 'Unflagged Sponsors',
+        'Flagged Campaigns', 'Unflagged Campaigns'
+    ]
+    values = [
+        flagged_influencers, unflagged_influencers, 
+        flagged_sponsors, unflagged_sponsors,
+        flagged_campaigns, unflagged_campaigns
+    ]
+    
+    ax.bar(categories, values, color=['red', 'blue', 'orange', 'green', 'purple', 'cyan'])
+    ax.set_title('Flagged & Unflagged : Users and Campaigns')
+    ax.set_ylabel('Count')
+    ax.set_xticklabels(categories, rotation=15, ha='right')
+    
+    # Save plot to a BytesIO object and return it
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plt.close(fig)
+    return send_file(img, mimetype='image/png')
+
+
+@app.route('/plot/influencers_by_platform')
+def plot_influencers_by_platform():
+    # Fetch data
+    platforms = db.session.query(Influencer.platform, db.func.count(Influencer.inid)).group_by(Influencer.platform).all()
+    
+    # Prepare data
+    platforms_names = [p[0] for p in platforms]
+    platforms_counts = [p[1] for p in platforms]
+
+    # Create plot
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.bar(platforms_names, platforms_counts, color=['purple','blue','red'] , width=0.3)
+    ax.set_title('Number of Influencers by Platform')
+    ax.set_xlabel('Platform')
+    ax.set_ylabel('Count')
+    
+    # Save plot to a BytesIO object and return it
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plt.close(fig)
+    return send_file(img, mimetype='image/png')
+
+
+
+
+
+#--------------------------------------------------------------------------
 
 
 if __name__=="__main__":
