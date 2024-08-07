@@ -14,15 +14,12 @@
                 <a href="/smain"><button>Info</button></a>
                 <a href="/campaign"><button>Campaigns</button></a>
                 <a href="/sfind"><button>Find</button></a>
-                <a href=""><button>Stats</button></a>
                 <a href="/logout"><button>Logout</button></a>
             </nav>
         </header>
         <main>
             <h2>Welcome {{user.sname}}</h2>
-            <div class="searchbar">
-                <input type="text" placeholder="search bar...">
-            </div>
+            
             <br>
             <div class="viewpoint">
                 <h3>All Influencers</h3>
@@ -51,11 +48,16 @@
             <div class="popupcontent">
                 <span class="close" data-popup-id="popup{{ i.inid }}">&times;</span>
                 <h2>Description</h2>
-                <p>{{ i.iname }}</p>
-                <div class="buttons">
-                    <button class="addbutton" data-cid="{{ i.inid }}" data-sid="{{ user.sid }}">Add</button>
-                    <button class="findbutton" data-cid="{{ i.inid }}" data-sid="{{ user.sid }}">Find</button>
-                </div>
+                <p>{{ i.iname }}
+
+
+
+
+
+
+                    
+                </p>
+                
             </div>
         </div>
     {% endfor %}

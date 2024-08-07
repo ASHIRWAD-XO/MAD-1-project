@@ -1,10 +1,11 @@
 from flask import Flask ,render_template, redirect,request,session,abort ,jsonify,url_for
 from models import *
-import io
 import matplotlib.pyplot as plt
 import pandas as pd
 from flask import send_file
 import matplotlib
+import base64
+from io import BytesIO
 matplotlib.use('Agg')
 
 app = Flask(__name__)
@@ -66,17 +67,6 @@ def spnsr_regis():
         return redirect("login")
     else:
         return 'confirmation passwords does not match'
-#-------------------test page----------
-@app.route('/test')
-def test():
-    influ=Influencer.query.all()
-    sp=Sponsor.query.all()
-    return render_template('testveiw.html',influ=influ,sp=sp)
-
-@app.route('/t2')
-def t2():
-    influ=Influencer.query.all()
-    return render_template("t2.html",camp=influ)
 
 #-------------------general login------------
 
@@ -418,7 +408,6 @@ def requests():
         userid=data[1]
         cid=data[2]
         who=data[3]
-        
         if who=='i':
             iname=Influencer.query.filter_by(inid=userid).first()
             cdata=Campaign.query.filter_by(campaignid=cid).first()
@@ -573,145 +562,114 @@ def search_sponsor():
     else:
         return redirect('/')
 
+
+@app.route('/search_admin', methods=['GET'])
+def search_admin():
+    if 'username' in session:
+        query = request.args.get('query')
+        if query:
+            sponsor=[]
+            sponsor += Sponsor.query.filter(Sponsor.sname.contains(query)).all()
+            sponsor += Sponsor.query.filter(Sponsor.industry.contains(query)).all()
+            campaign=[]
+            campaign+=Campaign.query.filter(Campaign.cname.contains(query)).all()
+            campaign+=Campaign.query.filter(Campaign.sname.contains(query)).all()
+            campaign+=Campaign.query.filter(Campaign.budget.contains(query)).all()
+            campaign+=Campaign.query.filter(Campaign.job.contains(query)).all()
+            influencer=[]
+            influencer += Influencer.query.filter(Influencer.iname.contains(query)).all()
+            influencer += Influencer.query.filter(Influencer.platform.contains(query)).all()
+            influencer += Influencer.query.filter(Influencer.reach.contains(query)).all()
+        else:
+            sponsor = []
+            campaign=[]
+            influencer=[]
+
+
+        return render_template('adminsearch.html', sponsors=sponsor,influencers=influencer,campaigns=campaign)
+    else:
+        return redirect('/')
+
 #----------------------------stats----------------------------------------------
 
 
-@app.route('/plot/histogramreach')
-def plot_histogramsreach():
-    # Fetch data
-    influencers = Influencer.query.all()
+def create_histogram(data, title, xlabel, ylabel, color):
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.hist(data, bins=20, color=color, edgecolor='black', rwidth=0.4)
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
 
-    # Prepare data
-    reach_data = [i.reach for i in influencers]
-
-    # Create plots
-    fig, ax = plt.subplots( figsize=(12, 6))
-    ax.hist(reach_data, bins=20, color='blue', edgecolor='black' ,rwidth=0.4)
-    ax.set_title('Histogram of Reach')
-    ax.set_xlabel('Reach')
-    ax.set_ylabel('Frequency')
-    
-    
-    
-    # Save plot to a BytesIO object and return it
-    img = io.BytesIO()
+    img = BytesIO()
     plt.savefig(img, format='png')
     img.seek(0)
     plt.close(fig)
-    return send_file(img, mimetype='image/png')
+    return img
 
-
-
-@app.route('/plot/histogrambudget')
-def plot_histogramsbudget():
-    # Fetch data
-    campaigns = Campaign.query.all()
-
-    # Prepare data
-    budget_data = [c.budget for c in campaigns]
-
-    # Create plots
-    fig, ax = plt.subplots( figsize=(12, 6))
-    
-    
-    ax.hist(budget_data, bins=20, color='green', edgecolor='black',rwidth=0.4)
-    ax.set_title('Histogram of Budget')
-    ax.set_xlabel('Budget')
-    ax.set_ylabel('Frequency')
-    
-    # Save plot to a BytesIO object and return it
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    plt.close(fig)
-    return send_file(img, mimetype='image/png')
-
-
-
-@app.route('/plot/total_campaigns_sponsors_influencers')
-def plot_total_campaigns_sponsors_influencers():
-    # Fetch data
-    total_campaigns = Campaign.query.count()
-    total_sponsors = Sponsor.query.count()
-    total_influencers = Influencer.query.count()
-    
-    # Create plot
+def create_bar_plot(categories, values, title, ylabel, colors):
     fig, ax = plt.subplots(figsize=(8, 6))
-    categories = ['Total Campaigns', 'Total Sponsors', 'Total Influencers']
-    values = [total_campaigns, total_sponsors, total_influencers]
-    
-    ax.bar(categories, values, color=['blue', 'green', 'orange'] , width=0.4)
-    ax.set_title('Total Campaigns, Sponsors, and Influencers')
-    ax.set_ylabel('Count')
-    
-    # Save plot to a BytesIO object and return it
-    img = io.BytesIO()
+    ax.bar(categories, values, color=colors, width=0.4)
+    ax.set_title(title)
+    ax.set_ylabel(ylabel)
+
+    img = BytesIO()
     plt.savefig(img, format='png')
     img.seek(0)
     plt.close(fig)
-    return send_file(img, mimetype='image/png')
+    return img
 
-
-@app.route('/plot/flagged_unflagged_users')
-def plot_flagged_unflagged_users():
-    # Fetch data
-    flagged_influencers = Influencer.query.filter_by(flag=1).count()
-    unflagged_influencers = Influencer.query.filter_by(flag=0).count()
-    flagged_sponsors = Sponsor.query.filter_by(flag=1).count()
-    unflagged_sponsors = Sponsor.query.filter_by(flag=0).count()
-    flagged_campaigns = Campaign.query.filter_by(flag=1).count()
-    unflagged_campaigns = Campaign.query.filter_by(flag=0).count()
-    
-    # Create plot
+def create_bar_plot_rotated(categories, values, title, ylabel, colors):
     fig, ax = plt.subplots(figsize=(12, 7))
-    categories = [
-        'Flagged Influencers', 'Unflagged Influencers', 
-        'Flagged Sponsors', 'Unflagged Sponsors',
-        'Flagged Campaigns', 'Unflagged Campaigns'
-    ]
-    values = [
-        flagged_influencers, unflagged_influencers, 
-        flagged_sponsors, unflagged_sponsors,
-        flagged_campaigns, unflagged_campaigns
-    ]
-    
-    ax.bar(categories, values, color=['red', 'blue', 'orange', 'green', 'purple', 'cyan'])
-    ax.set_title('Flagged & Unflagged : Users and Campaigns')
-    ax.set_ylabel('Count')
+    ax.bar(categories, values, color=colors)
+    ax.set_title(title)
+    ax.set_ylabel(ylabel)
     ax.set_xticklabels(categories, rotation=15, ha='right')
-    
-    # Save plot to a BytesIO object and return it
-    img = io.BytesIO()
+
+    img = BytesIO()
     plt.savefig(img, format='png')
     img.seek(0)
     plt.close(fig)
-    return send_file(img, mimetype='image/png')
+    return img
 
+@app.route('/adminstatistics', methods=['GET', 'POST'])
+def adminstats():
+    if 'username' in session:
+        platforms = db.session.query(Influencer.platform, db.func.count(Influencer.inid)).group_by(Influencer.platform).all()
+        flagged_influencers = Influencer.query.filter_by(flag=1).count()
+        unflagged_influencers = Influencer.query.filter_by(flag=0).count()
+        flagged_sponsors = Sponsor.query.filter_by(flag=1).count()
+        unflagged_sponsors = Sponsor.query.filter_by(flag=0).count()
+        flagged_campaigns = Campaign.query.filter_by(flag=1).count()
+        unflagged_campaigns = Campaign.query.filter_by(flag=0).count()
+        total_campaigns = Campaign.query.count()
+        total_sponsors = Sponsor.query.count()
+        total_influencers = Influencer.query.count()
+        campaigns = Campaign.query.all()
+        budget_data = [c.budget for c in campaigns]
+        influencers = Influencer.query.all()
+        reach_data = [i.reach for i in influencers]
 
-@app.route('/plot/influencers_by_platform')
-def plot_influencers_by_platform():
-    # Fetch data
-    platforms = db.session.query(Influencer.platform, db.func.count(Influencer.inid)).group_by(Influencer.platform).all()
-    
-    # Prepare data
-    platforms_names = [p[0] for p in platforms]
-    platforms_counts = [p[1] for p in platforms]
+        img1 = create_bar_plot([p[0] for p in platforms], [p[1] for p in platforms], 'Number of Influencers by Platform', 'Count', ['purple', 'blue', 'red'])
+        img2 = create_bar_plot_rotated(
+            ['Flagged Influencers', 'Unflagged Influencers', 'Flagged Sponsors', 'Unflagged Sponsors', 'Flagged Campaigns', 'Unflagged Campaigns'],
+            [flagged_influencers, unflagged_influencers, flagged_sponsors, unflagged_sponsors, flagged_campaigns, unflagged_campaigns],
+            'Flagged & Unflagged: Users and Campaigns', 'Count', ['red', 'blue', 'orange', 'green', 'purple', 'cyan'])
+        img3 = create_bar_plot(
+            ['Total Campaigns', 'Total Sponsors', 'Total Influencers'], 
+            [total_campaigns, total_sponsors, total_influencers], 
+            'Total Campaigns, Sponsors, and Influencers', 'Count', ['blue', 'green', 'orange'])
+        img4 = create_histogram(budget_data, 'Histogram of Budget', 'Budget', 'Frequency', 'green')
+        img5 = create_histogram(reach_data, 'Histogram of Reach', 'Reach', 'Frequency', 'blue')
 
-    # Create plot
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.bar(platforms_names, platforms_counts, color=['purple','blue','red'] , width=0.3)
-    ax.set_title('Number of Influencers by Platform')
-    ax.set_xlabel('Platform')
-    ax.set_ylabel('Count')
-    
-    # Save plot to a BytesIO object and return it
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    plt.close(fig)
-    return send_file(img, mimetype='image/png')
+        img1_b64 = base64.b64encode(img1.getvalue()).decode('utf-8')
+        img2_b64 = base64.b64encode(img2.getvalue()).decode('utf-8')
+        img3_b64 = base64.b64encode(img3.getvalue()).decode('utf-8')
+        img4_b64 = base64.b64encode(img4.getvalue()).decode('utf-8')
+        img5_b64 = base64.b64encode(img5.getvalue()).decode('utf-8')
 
-
+        return render_template('admin_stats.html', img1=img1_b64, img2=img2_b64, img3=img3_b64, img4=img4_b64, img5=img5_b64)
+    else:
+        return redirect('/')
 
 
 
