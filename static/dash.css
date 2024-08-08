@@ -59,7 +59,7 @@ h2, h3 {
     color: #4a4a4a;
 }
 
-.campaign, .flagged, .request ,.list {
+.campaign, .flagged, .request ,.list , .requests {
     background-color: #f0f0f0;
     border-radius: 5px;
     padding: 1rem;

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/dash.css">
-    <title>influencer's Dashboard</title>
+    <title>Influencer's Dashboard</title>
 </head>
 <body>
     <div class="dashboard">
@@ -19,8 +19,7 @@
         <main>
             <h2>Welcome {{user.iname}}</h2>
             <div class="buttons">
-                <a href="/iupdate"><button class="addbutton" >Update profile</button></a>
-                
+                <a href="/iupdate"><button class="addbutton">Update profile</button></a>
             </div>
             <h3>Active Campaigns:</h3>
             <div class="campaignlist">
@@ -52,6 +51,7 @@
                                         <form action="/requestupdate" method="post">
                                             <button class="accept" type="submit" name="status" value="accepted,{{user.inid}},{{r.reqid}},i">Accept</button>
                                             <button class="reject" type="submit" name="status" value="rejected,{{user.inid}},{{r.reqid}},i">Reject</button>
+                                            <button class="negotiate" type="button" data-popup-id="negotiate-popup-{{ r.reqid }}">Negotiate</button>
                                         </form>
                                     </div>
                                 </div>
@@ -59,12 +59,9 @@
                         </tr>
                     {% endfor %}
                 </table>
-                
             </div>
         </main>
     </div>
-
-    <!-- ppop content -->
 
     {% for c in camp %}
     <div class="popup" id="popup-camp-{{ c.campaignid }}">
@@ -82,7 +79,7 @@
                 End Date: {{ c.enddate }} <br>
                 Job Type: {{ c.job }} <br>
             </p>
-            </div>
+        </div>
     </div>
     {% endfor %}
 
@@ -94,7 +91,6 @@
             <p>
                 Request ID: {{ r.reqid }} <br>
                 Sponsor's Username: {{ r.sname }} <br>
-                
                 Campaign Name: {{ r.campaign_id }} <br>
                 Budget: {{ r.budget }} <br>
                 Description: {{ r.desc }} <br>
@@ -103,108 +99,142 @@
                 Status: {{ r.public }} <br>
                 Job Type: {{ r.job }} <br>
             </p>
-            </div>
+        </div>
     </div>
     {% endfor %}
 
+    {% for r in request %}
+    <div class="popup" id="negotiate-popup-{{ r.reqid }}">
+        <div class="popupcontent">
+            <span class="close" data-popup-id="negotiate-popup-{{ r.reqid }}">&times;</span>
+            <h2>Negotiate</h2>
+            <form action="/negotiate" method="post">
+                <textarea name="message" placeholder="Enter your negotiation message here..." required></textarea>
+                <input type="hidden" name="request_id" value="{{ r.reqid }}">
+                <button type="submit" class="negbutton">Send Negotiation</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
 
-<script>
-document.addEventListener('DOMContentLoaded', (event) => {
-    const openButtons = document.querySelectorAll('.viewopen');
-    const closeButtons = document.querySelectorAll('.close');
+    <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const openButtons = document.querySelectorAll('.viewopen, .negotiate');
+        const closeButtons = document.querySelectorAll('.close');
 
-    openButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const popupId = button.getAttribute('data-popup-id');
-            const popup = document.getElementById(popupId);
-            popup.style.display = 'flex';
+        openButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const popupId = button.getAttribute('data-popup-id');
+                const popup = document.getElementById(popupId);
+                if (popup) {
+                    popup.style.display = 'flex';
+                }
+            });
+        });
+
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const popupId = button.getAttribute('data-popup-id');
+                const popup = document.getElementById(popupId);
+                if (popup) {
+                    popup.style.display = 'none';
+                }
+            });
+        });
+
+        window.addEventListener('click', (event) => {
+            const openPopups = document.querySelectorAll('.popup');
+            openPopups.forEach(popup => {
+                if (event.target === popup) {
+                    popup.style.display = 'none';
+                }
+            });
         });
     });
+    </script>
+    <style>
+    .viewopen, .negotiate {
+        padding: 10px 20px;
+        font-size: 16px;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
 
-    closeButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const popupId = button.getAttribute('data-popup-id');
-            const popup = document.getElementById(popupId);
-            popup.style.display = 'none';
-        });
-    });
+    .viewopen {
+        background-color: #ffd700;
+        color: black;
+    }
 
-    window.addEventListener('click', (event) => {
-        const openPopups = document.querySelectorAll('.popup');
-        openPopups.forEach(popup => {
-            if (event.target === popup) {
-                popup.style.display = 'none';
-            }
-        });
-    });
-});
-</script>
-<style>
-.viewopen {
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #ffd700;
-}
+    .negbutton {
+        background-color: black;
+    }
 
-.popup {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
+    .negotiate {
+        background-color: #ff9800; 
+    }
 
-.popupcontent {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-    position: relative;
-    width: 300px;
-}
+    .popup {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
 
-.close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 24px;
-    cursor: pointer;
-}
+    .popupcontent {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        position: relative;
+        width: 300px;
+    }
 
-.buttons {
-    margin-top: 20px;
-}
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 24px;
+        cursor: pointer;
+    }
 
-.addbutton {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-}
+    textarea {
+        width: 100%;
+        height: 100px;
+        margin-bottom: 10px;
+    }
 
-.findbutton {
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-}
-.accept {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-}
-.reject {
-    background-color: #f20707;
-    color: white;
-    border: none;
-    border-radius: 4px;
-}
-</style>
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .addbutton {
+        background-color: #4CAF50;
+    }
+
+    .findbutton {
+        background-color: #2196F3;
+    }
+
+    .accept {
+        background-color: #4CAF50;
+    }
+
+    .reject {
+        background-color: #f20707;
+    }
+    </style>
 </body>
 </html>

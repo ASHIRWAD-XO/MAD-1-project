@@ -149,6 +149,22 @@ def updateprofile():
         return  redirect('/imain')
     else:
         return redirect('/')
+    
+    
+@app.route('/negotiate',methods=['GET','POST'])
+def negotiate():
+    if 'username' in session:
+        user=Influencer.query.filter_by(usename=session['username']).first()
+        msg=request.form['message']
+        rid=request.form['request_id']
+        req=Requests.query.filter_by(reqid=rid).first()
+        req.msg=msg
+        req.icheck='negotiaton'
+        db.session.add(req)
+        db.session.commit()
+        return  redirect('/imain')
+    else:
+        return redirect('/')
 
 #-------------------sponsor---------------
 @app.route('/smain')
@@ -160,9 +176,11 @@ def smain():
         value='requested'
         req=Requests.query.filter_by(scheck=value).all()
         print(req,user,activecamp)
-        return render_template('sponsor_main.html',user=user,activecamp=activecamp,request=req)
-    else :
-        return redirect('login')
+        requested = Requests.query.filter_by(icheck='negotiaton',sname=user.usename).all()
+        print(requested)
+        return render_template('sponsor_main.html',user=user,activecamp=activecamp,request=req,requested=requested)
+    else : 
+        return redirect('/')
     
     
 @app.route('/sfind')
@@ -174,21 +192,6 @@ def sfind():
     else:
         return redirect('/')
 
-#----------------------rough--------------
-'''
-
-
-user = User.query.filter_by(username=username, password=password).first()
-        if user:
-            # Login successful
-            session['logged_in'] = True
-            session["username"]=username
-            return redirect("/home")
-        else:
-            # Login failed
-            error = 'Invalid username or password. Try again'
-            return render_template('login.html', error=error)
-    return render_template('login.html')'''
 
 @app.route('/sfind2')
 def sfind2():
@@ -196,6 +199,19 @@ def sfind2():
         influ=Influencer.query.all()
         user=Sponsor.query.filter_by(usename=session['username']).first()
         return  render_template("campaignfind.html",influ=influ,user=user)
+    else:
+        return redirect('/')
+
+
+@app.route('/delreq', methods=['POST'])
+def delreq():
+    if 'username' in session:
+        reqid = request.form['delete']
+        r = Requests.query.filter_by(reqid=reqid).first()
+        if r:
+            db.session.delete(r)
+            db.session.commit()
+        return redirect('/smain')
     else:
         return redirect('/')
 
@@ -436,6 +452,7 @@ def requestupdate():
             print(r)
             r.icheck=value
             r.scheck=value
+            r.msg=value
             db.session.add(r)
             db.session.commit()
             print("success",r)
@@ -450,6 +467,7 @@ def requestupdate():
             print(r)
             r.icheck=value
             r.scheck=value
+            r.msg=value
             db.session.add(r)
             db.session.commit()
             print("success",r)

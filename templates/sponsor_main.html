@@ -85,10 +85,7 @@
         .box {
             display: contents;
         }
-        .req_action{
-
-        }
-
+        
     </style>
 </head>
 <body>
@@ -119,6 +116,25 @@
                 {% endfor %}
                 </table>
                 
+            </div>
+            <h3>Request Status:</h3>
+            <div class="requeststatus">
+                <table>
+                {% for x in requested %}
+                    <tr>
+                        <td>
+                            <div class="requests">
+                                <span>Influencer Name : {{x.iname}}</span>
+                                <span>Campaign Name : {{ x.cname }}</span>
+                                <span>Message : {{ x.msg }}</span>
+                                <form action="/delreq" method="post">
+                                    <button type="submit" name="delete" value="{{ x.reqid }}" class="reject">Delete & Resend</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </table>
             </div>
 
             <h3>Requests</h3>
