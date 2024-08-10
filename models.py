@@ -60,8 +60,6 @@ class Requests(db.Model):
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Create all tables in the database
-        # Apply any migration scripts
-        # flask db upgrade
+        db.create_all()  
 
     

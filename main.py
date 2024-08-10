@@ -1,7 +1,6 @@
 from flask import Flask ,render_template, redirect,request,session,abort ,jsonify,url_for
 from models import *
 import matplotlib.pyplot as plt
-import pandas as pd
 from flask import send_file
 import matplotlib
 import base64
@@ -111,7 +110,7 @@ def imain():
 def ifind():
     if 'username' in session:
         user=Influencer.query.filter_by(usename=session['username']).first()
-        camp=Campaign.query.filter_by(public=1)
+        camp=Campaign.query.filter_by(public=1,flag=0)
         return  render_template("influencer_find.html",user=user,camp=camp)
     else:
         return redirect('/')
@@ -186,7 +185,7 @@ def smain():
 @app.route('/sfind')
 def sfind():
     if 'username' in session:
-        influ=Influencer.query.all()
+        influ=Influencer.query.filter_by(flag=0).all()
         user=Sponsor.query.filter_by(usename=session['username']).first()
         return  render_template("sponsor_find.html",influ=influ,user=user)
     else:
@@ -196,7 +195,7 @@ def sfind():
 @app.route('/sfind2')
 def sfind2():
     if 'username' in session:
-        influ=Influencer.query.all()
+        influ=Influencer.query.filter_by(flag=0).all()
         user=Sponsor.query.filter_by(usename=session['username']).first()
         return  render_template("campaignfind.html",influ=influ,user=user)
     else:
