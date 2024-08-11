@@ -38,6 +38,25 @@
                 
             </div>
 
+            <h3>Negotiations:</h3>
+            <div class="requeststatus">
+                <table>
+                {% for r in requested %}
+                    <tr>
+                        <td>
+                            <div class="requests">
+                                <span>Campaign Name : {{ r.cname }}</span>
+                                <form action="/requestupdate" method="post">
+                                    <button class="accept" type="submit" name="status" value="accepted,{{user.inid}},{{r.reqid}},i">Accept</button>
+                                    <button class="reject" type="submit" name="status" value="rejected,{{user.inid}},{{r.reqid}},i">Reject</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+
             <h3>Requests</h3>
             <div class="requestlist">
                 <table>
@@ -83,25 +102,25 @@
     </div>
     {% endfor %}
 
-    {% for r in request %}
-    <div class="popup" id="popup{{ r.reqid }}">
-        <div class="popupcontent">
-            <span class="close" data-popup-id="popup{{ r.reqid }}">&times;</span>
-            <h2>Description</h2>
-            <p>
-                Request ID: {{ r.reqid }} <br>
-                Sponsor's Username: {{ r.sname }} <br>
-                Campaign Name: {{ r.campaign_id }} <br>
-                Budget: {{ r.budget }} <br>
-                Description: {{ r.desc }} <br>
-                Start Date: {{ r.startdate }} <br>
-                End Date: {{ r.enddate }} <br>
-                Status: {{ r.public }} <br>
-                Job Type: {{ r.job }} <br>
-            </p>
-        </div>
+    {% for rc in request_campaigns %}
+<div class="popup" id="popup{{ rc.request.reqid }}">
+    <div class="popupcontent">
+        <span class="close" data-popup-id="popup{{ rc.request.reqid }}">&times;</span>
+        <h2>Request and Campaign Details</h2>
+        <p>
+            Campaign ID: {{ rc.campaign.campaignid }} <br>
+            Campaign Name: {{ rc.campaign.cname }} <br>
+            Sponsor's Username: {{ rc.campaign.sname }} <br>
+            Budget: {{ rc.campaign.budget }} <br>
+            Description: {{ rc.campaign.desc }} <br>
+            Start Date: {{ rc.campaign.startdate }} <br>
+            End Date: {{ rc.campaign.enddate }} <br>
+            Job Type: {{ rc.campaign.job }} <br>
+        </p>
     </div>
-    {% endfor %}
+</div>
+{% endfor %}
+
 
     {% for r in request %}
     <div class="popup" id="negotiate-popup-{{ r.reqid }}">

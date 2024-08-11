@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/dash.css">
-    <title>Sponsors's Dashboard</title>
+    <title>Sponsor's Dashboard</title>
     <style>
         .viewopen {
             margin: 20px;
@@ -61,31 +61,51 @@
             border: none;
             border-radius: 4px;
         }
-        form{
+
+        form {
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        .flagged ,.campaign{
-            height: 6vh;
 
+        .flagged, .campaign {
+            height: 6vh;
         }
-        .accept {
+
+        .accept , .modify {
             background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 4px;
         }
+
         .reject {
             background-color: #f20707;
             color: white;
             border: none;
             border-radius: 4px;
         }
+
         .box {
             display: contents;
         }
-        
+
+        .descbox, .budgetbox {
+            margin-bottom: 20px;
+        }
+    
+        .descbox label, .budgetbox label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+    
+        .descbox input, .budgetbox input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -115,9 +135,8 @@
                     </tr>
                 {% endfor %}
                 </table>
-                
             </div>
-            <h3>Request Status:</h3>
+            <h3>Negotiations:</h3>
             <div class="requeststatus">
                 <table>
                 {% for x in requested %}
@@ -128,8 +147,9 @@
                                 <span>Campaign Name : {{ x.cname }}</span>
                                 <span>Message : {{ x.msg }}</span>
                                 <form action="/delreq" method="post">
-                                    <button type="submit" name="delete" value="{{ x.reqid }}" class="reject">Delete & Resend</button>
+                                    <button type="submit" name="delete" value="{{ x.reqid }}" class="reject">Delete</button>
                                 </form>
+                                <button class="modify" data-popup-id="modify-popup-{{ x.reqid }}">Modify</button>
                             </div>
                         </td>
                     </tr>
@@ -153,7 +173,7 @@
                                                 <button class="reject" type="submit" name="status" value="rejected,{{user.inid}},{{r.reqid}},s">Reject</button>
                                                 
                                             </div>
-                                            
+
                                         </form>
                                     </div>
                                 </div>
@@ -184,7 +204,7 @@
                 Status: {{ c.public }} <br>
                 Job Type: {{ c.job }} <br>
             </p>
-            </div>
+        </div>
     </div>
     {% endfor %}
 
@@ -194,24 +214,47 @@
             <span class="close" data-popup-id="popup{{ r.reqid }}">&times;</span>
             <h2>Description</h2>
             <p>
-                Request ID: {{ r.reqid }} <br>
-                Sponsor's Username: {{ r.sname }} <br>
-                
-                Campaign Name: {{ r.campaign_id }} <br>
-                Budget: {{ r.budget }} <br>
-                Description: {{ r.desc }} <br>
-                Start Date: {{ r.startdate }} <br>
-                End Date: {{ r.enddate }} <br>
-                Status: {{ r.public }} <br>
-                Job Type: {{ r.job }} <br>
+                Request Id : {{ r.reqid }} <br>
+                Influencer Name : {{ r.iname }}  <br>
+                Campaign Name : {{ r.cname }}   <br>
+                Budget : {{ r.budget }} <br>
+                Description : {{ r.desc }} <br>
+                Start Date : {{ r.startdate }}  <br>
+                End Date : {{ r.enddate }} <br>
+                Job : {{ r.job }} 
             </p>
-            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Modify Popup -->
+    {% for x in requested %}
+    <div class="popup" id="modify-popup-{{ x.reqid }}">
+        <div class="popupcontent">
+            <span class="close" data-popup-id="modify-popup-{{ x.reqid }}">&times;</span>
+            <h2>Modify Request</h2>
+            <form action="/modrequest" method="post">
+                <div class="modifymain">
+                    <input type="hidden" name="reqid" value="{{ x.reqid }}">
+                    
+                    <div class="descbox">
+                        <label for="desc-{{ x.reqid }}">Description:</label>
+                        <input type="text" name="desc" id="desc-{{ x.reqid }}" placeholder="Enter new description">
+                    </div><br>
+                    <div class="budgetbox">
+                        <label for="budget-{{ x.reqid }}">Budget:</label>
+                        <input type="number" name="budget" id="budget-{{ x.reqid }}" placeholder="Enter new budget">
+                    </div><br>
+                    <button type="submit">Send</button>
+                </div>
+            </form>
+        </div>
     </div>
     {% endfor %}
 
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            const openButtons = document.querySelectorAll('.viewopen');
+            const openButtons = document.querySelectorAll('.viewopen, .modify');
             const closeButtons = document.querySelectorAll('.close');
 
             openButtons.forEach(button => {

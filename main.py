@@ -98,11 +98,20 @@ def logdata():
 def imain():
     if 'username' in session:
         data=Influencer.query.filter_by(usename=session['username']).first()
-        print(data )
+        print(data,data.usename )
         uname=session['username']
         req=Requests.query.filter_by(icheck='requested',iname=data.iname)
         camp=Campaign.query.filter_by(iname=data.iname)
-        return render_template('influencer_main.html',user=data,camp=camp,request=req)
+        requested = Requests.query.filter_by(icheck='negotiated',iname=data.iname).all()
+        print(requested )
+        request_campaigns = []
+        for r in req:
+            campaign = Campaign.query.get(r.campaign_id)
+            request_campaigns.append({
+                'request': r,
+                'campaign': campaign
+            })
+        return render_template('influencer_main.html',user=data,camp=camp,request=req,requested=requested,request_campaigns=request_campaigns)
     else :
         return redirect('login')
 
@@ -173,11 +182,25 @@ def smain():
         user=Sponsor.query.filter_by(usename=name).first()
         activecamp = Campaign.query.filter_by(sname=user.usename).filter(Campaign.iname != '').all()
         value='requested'
-        req=Requests.query.filter_by(scheck=value).all()
-        print(req,user,activecamp)
+        requ=Requests.query.filter_by(scheck=value).all()
         requested = Requests.query.filter_by(icheck='negotiaton',sname=user.usename).all()
-        print(requested)
-        return render_template('sponsor_main.html',user=user,activecamp=activecamp,request=req,requested=requested)
+        request_data = []
+        for req in requ:
+            influencer = Influencer.query.filter_by(iname=req.iname).first()
+            camp=Campaign.query.filter_by(campaignid=req.campaign_id).first()
+            print(influencer,camp)
+            request_data.append({
+                'reqid': req.reqid,
+                'iname': influencer.iname,
+                'cname': camp.cname,
+                'campaign_id': req.campaign_id,
+                'budget': camp.budget,
+                'desc': camp.desc,
+                'startdate': camp.startdate,
+                'enddate': camp.enddate,
+                'job': camp.job
+            })
+        return render_template('sponsor_main.html',user=user,activecamp=activecamp,requested=requested,request=request_data)
     else : 
         return redirect('/')
     
@@ -210,6 +233,36 @@ def delreq():
         if r:
             db.session.delete(r)
             db.session.commit()
+        return redirect('/smain')
+    else:
+        return redirect('/')
+    
+
+@app.route('/modrequest', methods=['POST'])
+def modifyrequest():
+    if 'username' in session:
+        desc = request.form['desc']
+        budget = request.form['budget']
+        reqid = request.form['reqid']
+        r = Requests.query.filter_by(reqid=reqid).first()
+        print(desc)
+        if r:
+            camp=Campaign.query.filter_by(campaignid=r.campaign_id).first()
+            if desc:
+                camp.desc=desc
+                db.session.add(camp)
+                db.session.commit()
+                r.icheck='negotiated'
+                db.session.add(r)
+                db.session.commit()
+            if budget:
+                camp.budget=budget
+                db.session.add(camp)
+                db.session.commit()
+                r.amount=budget
+                r.icheck='negotiated'
+                db.session.add(r)
+                db.session.commit()
         return redirect('/smain')
     else:
         return redirect('/')
