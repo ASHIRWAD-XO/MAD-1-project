@@ -182,7 +182,7 @@ def smain():
         user=Sponsor.query.filter_by(usename=name).first()
         activecamp = Campaign.query.filter_by(sname=user.usename).filter(Campaign.iname != '').all()
         value='requested'
-        requ=Requests.query.filter_by(scheck=value).all()
+        requ=Requests.query.filter_by(scheck=value,sname=user.usename).all()
         requested = Requests.query.filter_by(icheck='negotiaton',sname=user.usename).all()
         request_data = []
         for req in requ:
@@ -292,7 +292,7 @@ def adminlogin():
         session['username']=uname
         return redirect('adminhome')
     else:
-        #return '''You are not admin.Please login into influencer or sponsor page'''
+        # '''You are not admin.Please login into influencer or sponsor page'''
         #401- is for unauth access
         return abort(401)
 
@@ -305,7 +305,7 @@ def adminhome():
         cflag=Campaign.query.filter_by(flag=1)
         return render_template("admin_main.html",camp=camp,iflag=iflag,sflag=sflag,cflag=cflag)
     else:
-        return redirect('/admin')#change to home later
+        return redirect('/admin')
 
 
 @app.route('/adminfind')
@@ -316,7 +316,7 @@ def adminfind():
         camp=Campaign.query.all()
         return  render_template("admin_find.html",influ=influ,camp=camp,spon=spon)
     else:
-        return redirect('/admin')#change to home later
+        return redirect('/admin')
 
 
 #-------------------------flag------------------------------
@@ -342,7 +342,6 @@ def flag():
             db.session.commit()
             print('success')
         
-        #print(flagvalue,data)
         
         return redirect('/adminhome')
     else:
