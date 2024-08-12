@@ -35,3 +35,7 @@ Our platform acts as a vibrant connection between sponsors and influencers, maki
 •	Jinja
 •	Matplotlib
 •	BytesIso
+<<<<<<< HEAD
+=======
+
+>>>>>>> b4d653024b5ed69272ac4bfb661b1cd6f1b73b69
